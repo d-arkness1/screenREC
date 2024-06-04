@@ -23,8 +23,8 @@ export default class recorderClass {
         dropdownDefaultOption: document.querySelector(
           ".sh__dropdown--defaultOption"
         ),
-        dropdownOptions: document.querySelectorAll(".sh__dropdown__list--item"),
-        dropdownChevron: document.querySelector(".sh__dropdown--icon.chevron"),
+       // dropdownOptions: document.querySelectorAll(".sh__dropdown__list--item"),
+       // dropdownChevron: document.querySelector(".sh__dropdown--icon.chevron"),
         headerText: document.querySelector(".sh__header"),
         toast: document.getElementById("toast"),
         mime: null,
@@ -177,15 +177,7 @@ export default class recorderClass {
   }
 
   async startRecording() {
-    let stream;
-    if (this.set.selectedOption === "screen") {
-      stream = await this.recordScreen();
-    } else if (this.set.selectedOption === "screen-mic") {
-      stream = await this.recordScreenAndMicrophone();
-    } else {
-      // Handle the case where no valid option is selected
-      return;
-    }
+    let stream = await this.recordScreenAndMicrophone();
 
     let mimeType = "video/" + this.set.mime;
 
