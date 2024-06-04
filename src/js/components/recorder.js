@@ -177,8 +177,16 @@ export default class recorderClass {
   }
 
   async startRecording() {
-    let stream = await this.recordScreenAndMicrophone();
-
+    let stream;
+    // Assuming 'screen-mic' is the only option, but structure allows for easy addition of more options in the future
+    if (this.set.selectedOption === "screen") {
+      stream = await this.recordScreen();
+    } else if (this.set.selectedOption === "screen-mic") {
+      stream = await this.recordScreenAndMicrophone();
+    } else {
+      // Handle the case where no valid option is selected
+      return;
+    }
     let mimeType = "video/" + this.set.mime;
 
     this.set.filename = document.getElementById("filename").value;
