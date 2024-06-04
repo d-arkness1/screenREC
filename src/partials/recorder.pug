@@ -19,8 +19,14 @@ section.sh__recorder
                 //span A simple web screen recorder
 
 .sh__choice
-    // Removed dropdown and directly indicate the selected option
-    span(class="sh__choice--selectedOption") Record your Screen with Audio
+    .sh__dropdown
+        button(type="button" class="sh__dropdown--btn")
+            img(class="sh__dropdown--icon camera" src=`./images/camera.svg`)
+            span(class="sh__dropdown--defaultOption") Record your Screen with Audio
+            img(class="sh__dropdown--icon chevron" src=`./images/chevron-down.svg`)
+        ul.sh__dropdown__list(style="display: none;")  // Hide dropdown list initially
+            li(class="sh__dropdown__list--item" data-value="screen") Record your Screen Just
+            li(class="sh__dropdown__list--item selected" data-value="screen-mic") Record your Screen with Audio
 
     input(type="text" class="sh__choice--filename" id="filename" placeholder="Name your recording" autocomplete="off")
     button(type="button" class="sh__btn record" id="start")
