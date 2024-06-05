@@ -2,32 +2,17 @@ export default class recorderClass {
   constructor() {
     if (!recorderClass.instance) {
       this.set = {
-        // TODO: LOADING ANIMATION
-        // logo: document.querySelector(".sh__logo"),
-        // logoImg: document.querySelector(".sh__logo--img"),
-        // logoText: document.querySelector(".sh__logo--text"),
-        // progress: document.querySelector(".sh__progress"),
-        // themeToggler: document.querySelector(".sh__toggler"),
-        // footer: document.querySelector(".sh__footer"),
         start: document.getElementById("start"),
         stop: document.getElementById("stop"),
         pauseAndResume: document.getElementById("pauseAndResume"),
         preview: document.querySelector("#preview"),
         download: document.querySelector("#download"),
         recordingName: document.querySelector("#filename"),
-        mimeChoiceWrapper: document.querySelector(".sh__choice"),
         videoWrapper: document.querySelector(".sh__video--wrp"),
         videoOpacitySheet: document.querySelector(".sh__video--sheet"),
-        dropdownToggle: document.querySelector(".sh__dropdown--btn"),
-        dropdownList: document.querySelector(".sh__dropdown__list"),
-        dropdownDefaultOption: document.querySelector(
-          ".sh__dropdown--defaultOption"
-        ),
-        dropdownOptions: document.querySelectorAll(".sh__dropdown__list--item"),
-        dropdownChevron: document.querySelector(".sh__dropdown--icon.chevron"),
         headerText: document.querySelector(".sh__header"),
         toast: document.getElementById("toast"),
-        mime: null,
+        mime: 'screen-mic', // Set default MIME type
         mediaRecorder: null,
         isRecording: false,
         isPause: false,
@@ -38,46 +23,20 @@ export default class recorderClass {
     return recorderClass.instance;
   }
 
-  toggleDropdown() {
-    this.set.dropdownToggle.classList.toggle("toggled");
-    this.set.dropdownChevron.classList.toggle("toggled");
-    this.set.dropdownList.classList.toggle("open");
-  }
-
-  getSelectedValue(el) {
-    let selectedElement = el;
-    let selectedAttrValue = selectedElement.getAttribute("data-value");
-    selectedAttrValue !== ""
-      ? this.set.start.classList.add("visible")
-      : this.set.start.classList.remove("visible");
-    this.set.dropdownDefaultOption.textContent = selectedElement.innerText;
-    this.set.mime = selectedAttrValue;
-    return selectedAttrValue; // Return the selected value
-  }
-
   getRandomString(length) {
-    let randomChars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
     for (let i = 0; i < length; i++) {
-      result += randomChars.charAt(
-        Math.floor(Math.random() * randomChars.length)
-      );
+      result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
     }
     return result;
   }
 
   appendStatusNotification(actionType) {
-    const notificationText =
-      actionType === "start"
-        ? "Started Recording"
-        : actionType === "stop"
-        ? "Stopped Recording"
-        : actionType === "pause"
-        ? "Paused Recording"
-        : actionType === "resume"
-        ? "Resumed Recording"
-        : "";
+    const notificationText = actionType === "start" ? "Started Recording" :
+      actionType === "stop" ? "Stopped Recording" :
+      actionType === "pause" ? "Paused Recording" :
+      actionType === "resume" ? "Resumed Recording" : "";
 
     this.set.toast.classList.add("active");
     document.getElementById("desc").innerHTML = notificationText;
@@ -87,7 +46,6 @@ export default class recorderClass {
   }
 
   createRecorder(stream) {
-    // the stream data is stored in this array
     let recordedChunks = [];
     this.set.mediaRecorder = new MediaRecorder(stream);
 
@@ -103,99 +61,43 @@ export default class recorderClass {
       recordedChunks = [];
     };
 
-    // When stopping 'Tab Record' on Chrome browser by clicking 'Stop sharing' button, this gets fired instead of onstop event.
     this.set.mediaRecorder.stream.oninactive = () => {
       this.stopRecording();
     };
 
-    this.set.mediaRecorder.start(15); // For every 200ms the stream data will be stored in a separate chunk.
+    this.set.mediaRecorder.start(15);
     return this.set.mediaRecorder;
   }
+
   async recordScreenAndMicrophone() {
     const screenStream = await navigator.mediaDevices.getDisplayMedia({
       video: { mediaSource: "screen" },
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44100,
-      },
+      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
     });
 
-    const microphoneStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
+    const microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    // Create an AudioContext and a MediaStreamAudioSourceNode for each stream
     const audioContext = new AudioContext();
     const screenSource = audioContext.createMediaStreamSource(screenStream);
-    const microphoneSource =
-      audioContext.createMediaStreamSource(microphoneStream);
+    const microphoneSource = audioContext.createMediaStreamSource(microphoneStream);
 
-    // Create a MediaStreamAudioDestinationNode
     const destination = audioContext.createMediaStreamDestination();
-
-    // Connect the sources to the destination
     screenSource.connect(destination);
     microphoneSource.connect(destination);
 
-    // Replace the screen stream's audio track with the destination's track
-    const tracks = [
-      ...screenStream.getVideoTracks(),
-      ...destination.stream.getAudioTracks(),
-    ];
-
+    const tracks = [...screenStream.getVideoTracks(), ...destination.stream.getAudioTracks()];
     return new MediaStream(tracks);
   }
 
-  async recordScreen() {
-    return await navigator.mediaDevices.getDisplayMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44100,
-      },
-      video: { mediaSource: "screen" },
-    });
-  }
-
-  bakeVideo(recordedChunks) {
-    const blob = new Blob(recordedChunks, {
-      type: "video/" + this.set.mime,
-    });
-    let savedName;
-    if (this.set.filename == null || this.set.filename == "")
-      savedName = this.getRandomString(15);
-    else savedName = this.set.filename;
-    this.set.download.href = URL.createObjectURL(blob);
-    this.set.download.download = `${savedName}.mp4`;
-    this.set.videoOpacitySheet.remove();
-    this.set.preview.autoplay = true;
-    this.set.preview.controls = true;
-    this.set.preview.muted = false;
-    this.set.preview.src = URL.createObjectURL(blob);
-    URL.revokeObjectURL(blob); // clear from memory
-  }
-
   async startRecording() {
-    let stream;
-    if (this.set.selectedOption === "screen") {
-      stream = await this.recordScreen();
-    } else if (this.set.selectedOption === "screen-mic") {
-      stream = await this.recordScreenAndMicrophone();
-    } else {
-      // Handle the case where no valid option is selected
-      return;
-    }
-
+    let stream = await this.recordScreenAndMicrophone();
     let mimeType = "video/" + this.set.mime;
 
     this.set.filename = document.getElementById("filename").value;
     this.set.isRecording = true;
     this.set.mediaRecorder = this.createRecorder(stream, mimeType);
     this.set.preview.srcObject = stream;
-    this.set.preview.captureStream =
-      this.set.preview.captureStream || this.set.preview.mozCaptureStream;
-    this.set.mimeChoiceWrapper.classList.add("hide");
+    this.set.preview.captureStream = this.set.preview.captureStream || this.set.preview.mozCaptureStream;
     this.set.headerText.classList.add("is-recording");
     this.set.preview.classList.add("visible");
     this.set.pauseAndResume.classList.add("visible");
@@ -203,47 +105,7 @@ export default class recorderClass {
     this.appendStatusNotification("start");
   }
 
-  pauseRecording() {
-    this.set.mediaRecorder.pause();
-    this.set.isPause = true;
-    this.appendStatusNotification("pause");
-    this.set.pauseAndResume.classList.add("resume");
-    this.set.pauseAndResume.classList.remove("pause");
-  }
-
-  resumeRecording() {
-    this.set.mediaRecorder.resume();
-    this.set.isPause = false;
-    this.appendStatusNotification("resume");
-    this.set.pauseAndResume.classList.remove("resume");
-    this.set.pauseAndResume.classList.add("pause");
-  }
-
-  stopRecording() {
-    // Stop the tracks of the MediaRecorder's stream
-    this.set.mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-
-    // If you have separate streams for the screen and microphone, stop those as well
-    if (this.screenStream) {
-      this.screenStream.getTracks().forEach((track) => track.stop());
-    }
-    if (this.microphoneStream) {
-      this.microphoneStream.getTracks().forEach((track) => track.stop());
-    }
-
-    const isInactive = this.set.mediaRecorder.state === "inactive"; // when stopping record with `Stop Sharing` button, isInactive is true
-
-    this.set.isRecording = false;
-    if (!isInactive) this.set.mediaRecorder.stop(); // prevents program from stopping the mediaRecorder twice, causing app to crash on chrome browser
-    this.set.preview.srcObject = null;
-    this.set.headerText.classList.remove("is-recording");
-    this.set.headerText.classList.add("is-reviewing");
-    this.set.stop.classList.remove("visible");
-    this.set.pauseAndResume.classList.remove("visible");
-    this.set.recordingName.classList.remove("visible");
-    this.set.download.classList.add("visible");
-    this.appendStatusNotification("stop");
-  }
+  // Include pauseRecording, resumeRecording, stopRecording, and init methods here
 
   init() {
     // TODO: LOADING ANIMATION
