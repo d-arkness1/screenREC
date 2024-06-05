@@ -18,15 +18,18 @@ section.sh__recorder
             h2.sh__header--title.intro
                 span Record Your Data Flow Presentation
         .sh__choice
-.sh__choice
-    .sh__fixed-option
-        img(class="sh__dropdown--icon camera" src=`./images/camera.svg`)
-        span Record your Screen with Audio
+            .sh__dropdown
+                button(type="button" class="sh__dropdown--btn")
+                    img(class="sh__dropdown--icon camera" src=`./images/camera.svg`)
+                    span(class="sh__dropdown--defaultOption") What do you want to record?
+                    img(class="sh__dropdown--icon chevron" src=`./images/chevron-down.svg`)
+                ul.sh__dropdown__list
+                    li(class="sh__dropdown__list--item" data-value="screen-mic") Record your Screen with Audio
 
-    input(type="text" class="sh__choice--filename" id="filename" placeholder="Name your recording" autocomplete="off")
-    button(type="button" class="sh__btn record" id="start")
-        span.pulse
-        span I’m ready to record
+            input(type="text" class="sh__choice--filename" id="filename" placeholder="Name your recording" autocomplete="off")
+            button(type="button" class="sh__btn record" id="start")
+                span.pulse
+                span I’m ready to record
 
 
         .sh__video--wrp
